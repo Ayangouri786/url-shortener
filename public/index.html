@@ -15,13 +15,50 @@
                 <input type="url" name="url" id="url" required>
             </div>
             <div>
-                <label for="shortCode">Enter shortCode : </label>
-                <input type="text" name="shortCode" id="shortCode" required>
+                <label for="shortCode">Enter shortCode (optional): </label>
+                <input type="text" name="shortCode" id="shortCode">
             </div>
             <button type="submit">Shorten</button>
         </form>
         <h2>Shortened URLs</h2>
         <ul id="shortened-urls"></ul>
     </div>
+
+    <script>
+        document.getElementById('shorten-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(event.target);
+            const url = formData.get("url");
+            const shortCode = formData.get("shortCode");
+
+            try {
+                const response = await fetch("/shorten", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ url, shortcode: shortCode }) // ✅ match backend
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert("Form Submitted successfully: " + data.shortUrl);
+                    event.target.reset();
+
+                    // show in list
+                    const list = document.getElementById("shortened-urls");
+                    const li = document.createElement("li");
+                    li.innerHTML = `<a href="${data.shortUrl}" target="_blank">${data.shortUrl}</a>`;
+                    list.appendChild(li);
+
+                } else {
+                    const errorMessage = await response.text();
+                    alert("❌ Error: " + errorMessage);
+                }
+            } catch (error) {
+                console.error("⚠️ Request failed", error);
+                alert("⚠️ Could not connect to server.");
+            }
+        });
+    </script>
 </body>
 </html>
